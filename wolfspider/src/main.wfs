@@ -1,0 +1,22 @@
+[main]
+The main function parses the command line arguments, and kicks off the
+process of building the book.
+
+[arg-parsing]
+Here we parse the command line arguments. We set up defaults for
+everything we need, and then check if they have been set to something
+different in the args. A manual while loop is used as we will need to
+consume the next arg when an option flag is encountered.
+
+[use-env]
+Env is required for command line arguments.
+
+[build-order-struct]
+We need a struct to represent the build order: what we need to do
+which is the output of parsing a bookfile.
+
+[parse-bookfile]
+To parse a Bookfile, we look at each line, and pull it apart into a
+representation of what to do. We then append this to the list in the
+BuildOrder which we're building up. Finally we return the completed
+BuildOrder.
