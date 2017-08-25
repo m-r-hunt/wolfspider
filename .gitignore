@@ -1,1 +1,9 @@
+#Editor lock/backup files.
 *~
+*.swp
+
+# Rust/cargo stuff for wolfspider project
+/wolfspider/target/
+/wolfspider/Cargo.lock
+**/*.rs.bk
+
