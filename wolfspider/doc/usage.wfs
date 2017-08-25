@@ -1,0 +1,9 @@
+3 parts:
+
+normal source files for any language with wolfspidertag tag-name inserted in normal comments. Justification.
+
+wfs files with tag documentation
+
+bookfile at project root describing how to assemble final output
+
+supports wfs files with no source for overview documentation or other docs not attached directly to code - like this file in original tool source.

@@ -1,0 +1,43 @@
+* The source should stand on its own.
+** Compile without any other tool.
+** Readable/usable by someone who doesn't know the litlang.
+*** Key docs like interface description should be embedded in source.
+* The output should be a "book", i.e. a single linear document.
+* The output should be in any order relative to the source.
+
+Proposed scheme:
+Source has named refs in comments i.e.
+---
+main.c
+---
+//[main]
+int main() {
+  ...
+}
+
+Docfile (1 per logical code unit. Could be source file, or
+source/header pair for e.g. C, stored next to source) has commentary
+for named refs. Probably written in (well specified) markdownlike language.
+i.e.
+---
+main.lit
+---
+[main]
+This is the main function of the program. It reticulates splines and
+frobnicates widgets.
+
+Bookfile (1 per project) lists overall structure of project. Can name
+whole source files as units or interweave if desired.
+
+---
+Bookfile
+---
+main
+mylib:foo_fn
+myotherlib:something_using_foo
+mylib:bar_fn
+
+tag syntax: wolfspidertag tag-name
+tag-name any sequence of non-whitespace characters
+as no punctuation required, minimise risk of breaking weird comment syntax
+wolfspidertag v. unlikely to come up in normal use.
