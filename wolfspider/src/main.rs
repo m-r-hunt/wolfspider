@@ -22,17 +22,28 @@ struct WFSFileCache {
 
 impl WFSFileCache {
     fn new() -> WFSFileCache {
-        WFSFileCache{file_chunks: HashMap::new()}
+        WFSFileCache {
+            file_chunks: HashMap::new(),
+        }
     }
 
     fn load(&mut self, filename: &str) -> &Vec<Chunk> {
-        let mut file = File::open(filename).unwrap();
+        let mut file = File::open(filename.to_string() + ".wfs").unwrap();
         let mut content = String::new();
         file.read_to_string(&mut content).unwrap();
-        let re = Regex::new(r"\[([^\[\]]+)\].*").unwrap();
+        let re = Regex::new(
+            r"(?sx)                      # Turn on matching newlines and verbose mode.
+              \[ ( [^ \] ]+ ) \]         # Look for a square bracketed tag name.
+              ( (?: \\ \[ | [^ \[ ] )* ) # Followed by any amount of text with no
+                                         # unescaped left square brackets.",
+        ).unwrap();
         let mut chunks = Vec::new();
         for cap in re.captures_iter(content.as_ref()) {
-            chunks.push(Chunk{tag: cap[1].to_string(), content: cap[2].to_string()});
+            println!("{}", cap[2].to_string());
+            chunks.push(Chunk {
+                tag: cap[1].to_string(),
+                content: cap[2].to_string(),
+            });
         }
         self.file_chunks.insert(filename.to_string(), chunks);
         self.file_chunks.get(filename).unwrap()
@@ -41,7 +52,7 @@ impl WFSFileCache {
     fn get(&mut self, filename: &str) -> String {
         let chunks = if self.file_chunks.contains_key(filename) {
             self.file_chunks.get(filename).unwrap()
-        } else  {
+        } else {
             self.load(filename)
         };
         let mut whole_file = String::new();
@@ -54,7 +65,7 @@ impl WFSFileCache {
     fn get_tagged(&mut self, filename: &str, tag: &str) -> String {
         let chunks = if self.file_chunks.contains_key(filename) {
             self.file_chunks.get(filename).unwrap()
-        } else  {
+        } else {
             self.load(filename)
         };
         for ch in chunks {
@@ -93,8 +104,12 @@ impl BuildOrder {
         let mut read_files = WFSFileCache::new();
         for action in &self.actions {
             match action {
-                &Action::WholeFile { ref file } => {outfile.write(read_files.get(file).as_bytes())?;},
-                &Action::Tag { ref file, ref tag } => {outfile.write(read_files.get_tagged(file, tag).as_bytes())?;},
+                &Action::WholeFile { ref file } => {
+                    outfile.write(read_files.get(file).as_bytes())?;
+                }
+                &Action::Tag { ref file, ref tag } => {
+                    outfile.write(read_files.get_tagged(file, tag).as_bytes())?;
+                }
             }
         }
         Ok(())
@@ -124,16 +139,15 @@ fn parse_bookfile(bookfile: &str) -> Result<BuildOrder, ParseError> {
 
     for line in file.lines() {
         let line = line?;
-        if tag_re.is_match(line.as_ref()) {
-            // We checked is_match() so always unwraps.
-            let cap = tag_re.captures(line.as_ref()).unwrap();
-            actions.push(Action::Tag {
-                file: cap[1].to_string(),
-                tag: cap[2].to_string(),
-            });
-        } else {
-            actions.push(Action::WholeFile { file: line });
-        }
+        actions.push(tag_re.captures(line.as_ref()).map_or_else(
+            || Action::WholeFile { file: line.clone() },
+            |cap: regex::Captures| {
+                Action::Tag {
+                    file: cap[1].to_string(),
+                    tag: cap[2].to_string(),
+                }
+            },
+        ));
     }
     return Ok(BuildOrder { actions: actions });
 }

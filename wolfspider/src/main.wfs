@@ -17,6 +17,6 @@ which is the output of parsing a bookfile.
 
 [parse-bookfile]
 To parse a Bookfile, we look at each line, and pull it apart into a
-representation of what to do. We then append this to the list in the
+representation of what to do. \[escaped brackets\] We then append this to the list in the
 BuildOrder which we're building up. Finally we return the completed
 BuildOrder.
