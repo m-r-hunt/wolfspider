@@ -28,7 +28,7 @@ impl WFSFileCache {
     fn load(&mut self, filename: &str) -> &Vec<Chunk> {
         let mut file = File::open(filename).unwrap();
         let mut content = String::new();
-        file.read_to_string(&mut content);
+        file.read_to_string(&mut content).unwrap();
         let re = Regex::new(r"\[([^\[\]]+)\].*").unwrap();
         let mut chunks = Vec::new();
         for cap in re.captures_iter(content.as_ref()) {
@@ -59,7 +59,7 @@ impl WFSFileCache {
         };
         for ch in chunks {
             if ch.tag == tag {
-                return ch.content;
+                return ch.content.clone();
             }
         }
         panic!("Couldn't find tag.")
@@ -89,12 +89,12 @@ impl From<io::Error> for BuildError {
 
 impl BuildOrder {
     fn build(&self, outfile: &str) -> Result<(), BuildError> {
-        let outfile = File::create(outfile)?;
+        let mut outfile = File::create(outfile)?;
         let mut read_files = WFSFileCache::new();
         for action in &self.actions {
             match action {
-                &Action::WholeFile { ref file } => outfile.write(read_files.get(file).as_bytes())?,
-                &Action::Tag { ref file, ref tag } => outfile.write(read_files.get_tagged(file, tag).as_bytes())?,
+                &Action::WholeFile { ref file } => {outfile.write(read_files.get(file).as_bytes())?;},
+                &Action::Tag { ref file, ref tag } => {outfile.write(read_files.get_tagged(file, tag).as_bytes())?;},
             }
         }
         Ok(())
